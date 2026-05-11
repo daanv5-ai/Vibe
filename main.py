@@ -45,7 +45,7 @@ _raw_chat_id = os.environ.get("DAAN_CHAT_ID", "")
 DAAN_CHAT_ID = int(_raw_chat_id) if _raw_chat_id.lstrip("-").isdigit() else 0
 
 AMSTERDAM_TZ = pytz.timezone("Europe/Amsterdam")
-MODEL_NAME = "gemini-2.5-flash"
+MODEL_NAME = "gemini-3.1-flash-lite"
 
 # ─── Gemini Setup (new google.genai SDK) ──────────────────────────────────────
 client = genai.Client(api_key=GEMINI_API_KEY)
@@ -85,13 +85,13 @@ def _get_history(user_id: int) -> list:
 
 from calendar_manager import list_upcoming_events, add_calendar_event
 
-async def _chat(user_id: int, user_text: str) -> str:
+async def _chat(user_id: int, user_parts: list[types.Part]) -> str:
     """Send a message and handle any tool calls (Function Calling)."""
     history = _get_history(user_id)
     system_prompt = _build_system_prompt_for_user(user_id)
 
     # Append the new user turn
-    history.append(types.Content(role="user", parts=[types.Part(text=user_text)]))
+    history.append(types.Content(role="user", parts=user_parts))
 
     # We use a loop to handle potential multiple tool calls or follow-ups
     while True:
@@ -316,24 +316,37 @@ async def handle_calendar_list(update: Update, context: ContextTypes.DEFAULT_TYP
 
 async def handle_message(update: Update, context: ContextTypes.DEFAULT_TYPE):
     user_id = update.effective_user.id
-    user_text = update.message.text
-
-    if not user_text:
+    user_text = update.message.text or update.message.caption or ""
+    
+    if not update.message.text and not update.message.photo:
         return
 
     try:
         await context.bot.send_chat_action(chat_id=update.effective_chat.id, action="typing")
 
-        reply = await _chat(user_id, user_text)
+        user_parts = []
+        if user_text:
+            user_parts.append(types.Part(text=user_text))
+            
+        if update.message.photo:
+            # Use the largest available photo
+            photo = await update.message.photo[-1].get_file()
+            photo_bytes = await photo.download_as_bytearray()
+            user_parts.append(types.Part.from_bytes(data=bytes(photo_bytes), mime_type="image/jpeg"))
+            logger.info("Received photo from user %s", user_id)
+
+        reply = await _chat(user_id, user_parts)
 
         await context.bot.send_message(chat_id=update.effective_chat.id, text=reply)
 
         # Persist to DB
-        save_conversation_turn(user_id, "user", user_text)
+        # Store a placeholder for the image in the conversation DB
+        display_text = user_text + " [Photo]" if update.message.photo else user_text
+        save_conversation_turn(user_id, "user", display_text)
         save_conversation_turn(user_id, "model", reply)
 
-        # Background memory extraction
-        await _try_extract_memory(user_id, user_text, reply)
+        # Background memory extraction (Gemini will use its 'vision' of the reply to extract facts)
+        await _try_extract_memory(user_id, display_text, reply)
 
     except Exception as e:
         logger.error("Error in handle_message: %s", e)
@@ -379,7 +392,7 @@ if __name__ == "__main__":
     application.add_handler(CommandHandler("forget", handle_forget_cmd))
     application.add_handler(CommandHandler("clearmemory", handle_clearmemory_cmd))
     application.add_handler(CommandHandler("calendar", handle_calendar_list))
-    application.add_handler(MessageHandler(filters.TEXT & (~filters.COMMAND), handle_message))
+    application.add_handler(MessageHandler(filters.TEXT | filters.PHOTO & (~filters.COMMAND), handle_message))
 
     job_queue = application.job_queue
     if job_queue is not None:

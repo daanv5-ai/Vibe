@@ -10,6 +10,7 @@ env/
 .env
 credentials.json
 token.json
+whoop_token.json
 
 # Databases
 *.db

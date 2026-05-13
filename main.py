@@ -27,6 +27,8 @@ from memory import (
     get_recent_conversation,
 )
 from news_fetcher import generate_morning_briefing
+import tasks
+from whoop_manager import get_whoop_data
 
 # ─── Logging ──────────────────────────────────────────────────────────────────
 logging.basicConfig(
@@ -45,7 +47,7 @@ _raw_chat_id = os.environ.get("DAAN_CHAT_ID", "")
 DAAN_CHAT_ID = int(_raw_chat_id) if _raw_chat_id.lstrip("-").isdigit() else 0
 
 AMSTERDAM_TZ = pytz.timezone("Europe/Amsterdam")
-MODEL_NAME = "gemini-3.1-flash-lite"
+MODEL_NAME = "gemini-2.5-flash"
 
 # ─── Gemini Setup (new google.genai SDK) ──────────────────────────────────────
 client = genai.Client(api_key=GEMINI_API_KEY)
@@ -125,6 +127,49 @@ async def _chat(user_id: int, user_parts: list[types.Part]) -> str:
                             },
                             "required": ["summary", "start_time_iso"]
                         }
+                    ),
+                    types.FunctionDeclaration(
+                        name="add_task",
+                        description="Add a new task or project step to the user's to-do list.",
+                        parameters={
+                            "type": "OBJECT",
+                            "properties": {
+                                "title": {"type": "STRING", "description": "The specific task to be done."},
+                                "project_name": {"type": "STRING", "description": "Optional project name this task belongs to."}
+                            },
+                            "required": ["title"]
+                        }
+                    ),
+                    types.FunctionDeclaration(
+                        name="list_tasks",
+                        description="List the user's active tasks or projects.",
+                        parameters={
+                            "type": "OBJECT",
+                            "properties": {
+                                "status": {"type": "STRING", "description": "Filter by status: 'pending', 'completed', or 'all'. Defaults to 'pending'."},
+                                "project_name": {"type": "STRING", "description": "Filter by a specific project name."}
+                            }
+                        }
+                    ),
+                    types.FunctionDeclaration(
+                        name="update_task_status",
+                        description="Update the status of a specific task (e.g. mark it as completed).",
+                        parameters={
+                            "type": "OBJECT",
+                            "properties": {
+                                "task_id": {"type": "INTEGER", "description": "The ID of the task to update."},
+                                "status": {"type": "STRING", "description": "The new status: 'pending' or 'completed'."}
+                            },
+                            "required": ["task_id", "status"]
+                        }
+                    ),
+                    types.FunctionDeclaration(
+                        name="get_whoop_data",
+                        description="Fetch the user's latest Whoop metrics (Recovery, Strain, Sleep). Use this to inform scheduling or fitness advice.",
+                        parameters={
+                            "type": "OBJECT",
+                            "properties": {}
+                        }
                     )
                 ])],
                 temperature=0.7,
@@ -147,6 +192,14 @@ async def _chat(user_id: int, user_parts: list[types.Part]) -> str:
                 result = list_upcoming_events(**call.args)
             elif call.name == "add_calendar_event":
                 result = add_calendar_event(**call.args)
+            elif call.name == "add_task":
+                result = tasks.add_task(user_id=user_id, **call.args)
+            elif call.name == "list_tasks":
+                result = tasks.list_tasks(user_id=user_id, **call.args)
+            elif call.name == "update_task_status":
+                result = tasks.update_task_status(user_id=user_id, **call.args)
+            elif call.name == "get_whoop_data":
+                result = get_whoop_data()
             else:
                 result = f"Error: Tool {call.name} not found."
             
@@ -372,7 +425,19 @@ async def send_morning_briefing(context: ContextTypes.DEFAULT_TYPE):
         return
 
     logger.info("Sending morning briefing to chat_id=%s", DAAN_CHAT_ID)
-    briefing = generate_morning_briefing(client, MODEL_NAME, NEWS_API_KEY)
+    
+    whoop_data = get_whoop_data()
+    tasks_data = tasks.list_tasks(DAAN_CHAT_ID)
+    calendar_data = list_upcoming_events(max_results=5)
+    
+    briefing = generate_morning_briefing(
+        client, 
+        MODEL_NAME, 
+        NEWS_API_KEY, 
+        whoop_data=whoop_data, 
+        tasks_data=tasks_data,
+        calendar_data=calendar_data
+    )
     await context.bot.send_message(chat_id=DAAN_CHAT_ID, text=briefing)
 
 
@@ -383,6 +448,7 @@ if __name__ == "__main__":
         raise ValueError("No valid TELEGRAM_BOT_TOKEN found in .env")
 
     init_db()
+    tasks.init_db()
 
     application = ApplicationBuilder().token(TELEGRAM_BOT_TOKEN).build()
 

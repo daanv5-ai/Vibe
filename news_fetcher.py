@@ -90,42 +90,48 @@ def build_news_context(api_key: str) -> str:
     return "\n".join(lines)
 
 
-def generate_morning_briefing(client, model_name: str, api_key: str) -> str:
+def generate_morning_briefing(client, model_name: str, api_key: str, whoop_data: str = "", tasks_data: str = "", calendar_data: str = "") -> str:
     """
-    Use Gemini to turn raw headlines into a crisp morning briefing for Daan.
+    Use Gemini to turn raw headlines, whoop data, tasks, and calendar into a crisp morning briefing for Daan.
     """
     from google.genai import types
 
     news_context = build_news_context(api_key)
 
     if not news_context:
-        return (
-            "Good morning Daan! 🌅\n\n"
-            "The news wires are dead quiet. Either the world stopped spinning or my sources are on strike."
-        )
+        news_context = "No major headlines in the last 24 hours."
 
     today = datetime.now().strftime("%A, %d %B %Y")
 
-    prompt = f"""You are Daan's personal assistant giving him his daily morning briefing.
+    prompt = f"""You are Daan's structured, casual business planning assistant.
 Today is {today}.
+
+WHOOP HEALTH METRICS:
+{whoop_data if whoop_data else "No Whoop data available today."}
+
+ACTIVE TASKS:
+{tasks_data if tasks_data else "No active tasks in the system."}
+
+TODAY's CALENDAR EVENTS:
+{calendar_data if calendar_data else "No calendar events scheduled for today."}
 
 RAW HEADLINES & SOURCES:
 {news_context}
 
 YOUR TASK:
-Create a scannable, sharp, and slightly sarcastic morning briefing.
+Create a highly structured, scannable morning briefing that acts as Daan's control center for the day.
 
 FORMAT RULES:
-1. Start with a witty greeting referencing the date and maybe a roast about his 'yfood' breakfast or 8:00 AM wake-up.
-2. For EACH category (Ukraine, Middle East, Hormuz, AI, Data, Banking, Dutch Politics, Stocks):
+1. **Health & Readiness**: Start with a very brief summary of his Whoop recovery and sleep. Based on this, give a 1-sentence recommendation on how hard he should push physically today.
+2. **Today's Battle Plan**: Review his active tasks, his calendar events, and his recovery. Propose a concrete, prioritized plan of attack for today. Suggest exactly which 2-3 tasks he should focus on and mention when they fit around his meetings/events. Keep it actionable and business-like.
+3. **World Context**: For EACH news category (Ukraine, Middle East, Hormuz, AI, Data, Banking, Dutch Politics, Stocks):
    - Provide a 1-sentence punchy summary.
-   - Mention the source and its general political leaning (Left, Right, Center, Financial-focused, etc.).
-   - Follow with a concise "In-depth Analysis" (2-3 sentences) on why this matters to Daan or the world.
-3. For the Strait of Hormuz: Explicitly state "STATUS: OPEN" or "STATUS: RESTRICTED/CLOSED".
-4. Tone: Witty, analytical, sharp. No fluff. Use emojis.
-5. End with a "Today's Focus" roast/motivation.
+   - Mention the source and its general political leaning.
+   - Follow with a concise "In-depth Analysis" (2-3 sentences) on why this matters.
+   - For the Strait of Hormuz: Explicitly state "STATUS: OPEN" or "STATUS: RESTRICTED/CLOSED".
+4. Tone: Casual, structured, analytical. Occasional light wit, but mostly a focused business planner. No fluff. Use emojis for structure.
 
-Keep it scannable with clear sections.
+Keep it scannable with clear headings.
 """
 
     try:
@@ -134,7 +140,7 @@ Keep it scannable with clear sections.
             contents=prompt,
             config=types.GenerateContentConfig(
                 temperature=0.7,
-                max_output_tokens=1000,
+                max_output_tokens=1500,
             ),
         )
         return response.text

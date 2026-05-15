@@ -90,9 +90,9 @@ def build_news_context(api_key: str) -> str:
     return "\n".join(lines)
 
 
-def generate_morning_briefing(client, model_name: str, api_key: str, whoop_data: str = "", tasks_data: str = "", calendar_data: str = "") -> str:
+def generate_morning_briefing(client, model_name: str, api_key: str, whoop_data: str = "", tasks_data: str = "", calendar_data: str = "", weather_data: str = "") -> str:
     """
-    Use Gemini to turn raw headlines, whoop data, tasks, and calendar into a crisp morning briefing for Daan.
+    Use Gemini to turn raw headlines, whoop data, tasks, calendar, and weather into a crisp morning briefing.
     """
     from google.genai import types
 
@@ -103,35 +103,48 @@ def generate_morning_briefing(client, model_name: str, api_key: str, whoop_data:
 
     today = datetime.now().strftime("%A, %d %B %Y")
 
-    prompt = f"""You are Daan's structured, casual business planning assistant.
+    prompt = f"""You are Daan's Executive AI Strategist.
 Today is {today}.
 
-WHOOP HEALTH METRICS:
+WHOOP PERFORMANCE METRICS:
 {whoop_data if whoop_data else "No Whoop data available today."}
 
-ACTIVE TASKS:
+ENVIRONMENTAL DATA (WEATHER):
+{weather_data if weather_data else "No weather data available today."}
+
+OPERATIONAL OVERVIEW (TASKS):
 {tasks_data if tasks_data else "No active tasks in the system."}
 
-TODAY's CALENDAR EVENTS:
+TODAY'S SCHEDULE (CALENDAR):
 {calendar_data if calendar_data else "No calendar events scheduled for today."}
 
-RAW HEADLINES & SOURCES:
+GLOBAL INTEL (NEWS):
 {news_context}
 
-YOUR TASK:
-Create a highly structured, scannable morning briefing that acts as Daan's control center for the day.
+YOUR OBJECTIVE:
+Deliver a high-density, analytical morning briefing that integrates all available data streams to optimize Daan's day.
 
-FORMAT RULES:
-1. **Health & Readiness**: Start with a very brief summary of his Whoop recovery and sleep. Based on this, give a 1-sentence recommendation on how hard he should push physically today.
-2. **Today's Battle Plan**: Review his active tasks, his calendar events, and his recovery. Propose a concrete, prioritized plan of attack for today. Suggest exactly which 2-3 tasks he should focus on and mention when they fit around his meetings/events. Keep it actionable and business-like.
-3. **World Context**: For EACH news category (Ukraine, Middle East, Hormuz, AI, Data, Banking, Dutch Politics, Stocks):
-   - Provide a 1-sentence punchy summary.
-   - Mention the source and its general political leaning.
-   - Follow with a concise "In-depth Analysis" (2-3 sentences) on why this matters.
-   - For the Strait of Hormuz: Explicitly state "STATUS: OPEN" or "STATUS: RESTRICTED/CLOSED".
-4. Tone: Casual, structured, analytical. Occasional light wit, but mostly a focused business planner. No fluff. Use emojis for structure.
+FORMAT REQUIREMENTS:
 
-Keep it scannable with clear headings.
+1. **Strategic Daily Assessment**: 
+   - Analyze the intersection of Whoop Recovery, Weather, and Calendar load.
+   - Deliver a "Best Plan of Action": e.g., "Given 90% recovery and clear skies before 14:00, execute high-intensity training early. Dedicate the rainy afternoon to deep work on [Project Name] to maximize output."
+   - Provide a specific 1-sentence physical performance recommendation.
+
+2. **Operational Roadmap**:
+   - Prioritize the top 3 tasks from the system that align with his current energy and schedule.
+   - Explicitly mention how these tasks fit between specific calendar events.
+
+3. **Geopolitical & Market Intelligence**:
+   - For EACH news category:
+     - 1-sentence executive summary.
+     - Source identification and political orientation.
+     - 2-3 sentence strategic analysis of the implications.
+   - STRAIT OF HORMUZ STATUS: [OPEN/RESTRICTED/CLOSED]
+
+4. **Tone**: Serious, formal, highly structured, and data-driven. Zero filler.
+
+Format with clear, professional headers and bullet points.
 """
 
     try:
@@ -139,8 +152,8 @@ Keep it scannable with clear headings.
             model=model_name,
             contents=prompt,
             config=types.GenerateContentConfig(
-                temperature=0.7,
-                max_output_tokens=1500,
+                temperature=0.3, # Lower temperature for more formal/precise output
+                max_output_tokens=2000,
             ),
         )
         return response.text

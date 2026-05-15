@@ -29,6 +29,7 @@ from memory import (
 from news_fetcher import generate_morning_briefing
 import tasks
 from whoop_manager import get_whoop_data
+import weather_fetcher
 
 # ─── Logging ──────────────────────────────────────────────────────────────────
 logging.basicConfig(
@@ -43,18 +44,20 @@ load_dotenv()
 GEMINI_API_KEY = os.environ.get("GEMINI_API_KEY", "")
 TELEGRAM_BOT_TOKEN = os.environ.get("TELEGRAM_BOT_TOKEN", "")
 NEWS_API_KEY = os.environ.get("NEWS_API_KEY", "")
+OPENWEATHER_API_KEY = os.environ.get("OPENWEATHER_API_KEY", "")
+CITY_NAME = os.environ.get("CITY_NAME", "Amsterdam")
 _raw_chat_id = os.environ.get("DAAN_CHAT_ID", "")
 DAAN_CHAT_ID = int(_raw_chat_id) if _raw_chat_id.lstrip("-").isdigit() else 0
 
 AMSTERDAM_TZ = pytz.timezone("Europe/Amsterdam")
-MODEL_NAME = "gemini-2.5-flash"
+MODEL_NAME = "gemini-3.1-flash-lite"
 
 # ─── Gemini Setup (new google.genai SDK) ──────────────────────────────────────
 client = genai.Client(api_key=GEMINI_API_KEY)
 
-# Per-user conversation history stored as list of Content dicts
-# { user_id: [ {"role": ..., "parts": [{"text": ...}]}, ... ] }
-user_histories: dict[int, list] = {}
+# We'll use a dictionary of Chat sessions to manage history automatically
+# { user_id: chat_session }
+chat_sessions: dict[int, any] = {}
 
 
 def _build_system_prompt_for_user(user_id: int) -> str:
@@ -70,38 +73,22 @@ def _build_system_prompt_for_user(user_id: int) -> str:
     return prompt
 
 
-def _get_history(user_id: int) -> list:
-    """Get or initialise conversation history from DB."""
-    if user_id not in user_histories:
+def _get_chat_session(user_id: int):
+    """Get or create a chat session for the user, pre-loaded with history."""
+    if user_id not in chat_sessions:
         recent = get_recent_conversation(user_id, limit=20)
-        user_histories[user_id] = [
+        history = [
             types.Content(
                 role=turn["role"],
                 parts=[types.Part(text=turn["content"])]
             )
             for turn in recent
         ]
-        logger.info("Loaded %d history turns for user %s", len(user_histories[user_id]), user_id)
-    return user_histories[user_id]
-
-
-from calendar_manager import list_upcoming_events, add_calendar_event
-
-async def _chat(user_id: int, user_parts: list[types.Part]) -> str:
-    """Send a message and handle any tool calls (Function Calling)."""
-    history = _get_history(user_id)
-    system_prompt = _build_system_prompt_for_user(user_id)
-
-    # Append the new user turn
-    history.append(types.Content(role="user", parts=user_parts))
-
-    # We use a loop to handle potential multiple tool calls or follow-ups
-    while True:
-        response = client.models.generate_content(
+        
+        chat_sessions[user_id] = client.chats.create(
             model=MODEL_NAME,
-            contents=history,
             config=types.GenerateContentConfig(
-                system_instruction=system_prompt,
+                system_instruction=_build_system_prompt_for_user(user_id),
                 tools=[types.Tool(function_declarations=[
                     types.FunctionDeclaration(
                         name="list_upcoming_events",
@@ -165,53 +152,75 @@ async def _chat(user_id: int, user_parts: list[types.Part]) -> str:
                     ),
                     types.FunctionDeclaration(
                         name="get_whoop_data",
-                        description="Fetch the user's latest Whoop metrics (Recovery, Strain, Sleep). Use this to inform scheduling or fitness advice.",
+                        description="Fetch the user's latest Whoop metrics (Recovery, Strain, Sleep).",
                         parameters={
                             "type": "OBJECT",
                             "properties": {}
+                        }
+                    ),
+                    types.FunctionDeclaration(
+                        name="get_weather",
+                        description="Fetch the current weather for a specific city.",
+                        parameters={
+                            "type": "OBJECT",
+                            "properties": {
+                                "city": {"type": "STRING", "description": "The name of the city. Defaults to the user's home city."}
+                            }
                         }
                     )
                 ])],
                 temperature=0.7,
             ),
+            history=history
         )
+    return chat_sessions[user_id]
 
-        # Check for function calls
-        content = response.candidates[0].content
-        history.append(content) # Add model turn to history
 
-        tool_calls = [p.function_call for p in content.parts if p.function_call]
-        if not tool_calls:
-            return response.text
+from calendar_manager import list_upcoming_events, add_calendar_event
 
-        # Execute tool calls
+async def _chat(user_id: int, user_parts: list[types.Part]) -> str:
+    """Send a message using the Chat session, which handles tool loops automatically."""
+    chat = _get_chat_session(user_id)
+    
+    # We use a loop to handle potential multiple tool calls or follow-ups
+    # Note: send_message with tools will handle the internal call/response loop if we pass the right config
+    response = chat.send_message(user_parts)
+    
+    # Check if there are tool calls to execute
+    while response.candidates[0].content.parts[0].function_call:
         tool_responses = []
-        for call in tool_calls:
-            logger.info("Bot calling function: %s with args %s", call.name, call.args)
-            if call.name == "list_upcoming_events":
-                result = list_upcoming_events(**call.args)
-            elif call.name == "add_calendar_event":
-                result = add_calendar_event(**call.args)
-            elif call.name == "add_task":
-                result = tasks.add_task(user_id=user_id, **call.args)
-            elif call.name == "list_tasks":
-                result = tasks.list_tasks(user_id=user_id, **call.args)
-            elif call.name == "update_task_status":
-                result = tasks.update_task_status(user_id=user_id, **call.args)
-            elif call.name == "get_whoop_data":
-                result = get_whoop_data()
-            else:
-                result = f"Error: Tool {call.name} not found."
-            
-            tool_responses.append(types.Part(
-                function_response=types.FunctionResponse(
-                    name=call.name,
-                    response={"result": result}
-                )
-            ))
+        for part in response.candidates[0].content.parts:
+            if call := part.function_call:
+                logger.info("Bot calling function: %s with args %s", call.name, call.args)
+                if call.name == "list_upcoming_events":
+                    result = list_upcoming_events(**call.args)
+                elif call.name == "add_calendar_event":
+                    result = add_calendar_event(**call.args)
+                elif call.name == "add_task":
+                    result = tasks.add_task(user_id=user_id, **call.args)
+                elif call.name == "list_tasks":
+                    result = tasks.list_tasks(user_id=user_id, **call.args)
+                elif call.name == "update_task_status":
+                    result = tasks.update_task_status(user_id=user_id, **call.args)
+                elif call.name == "get_whoop_data":
+                    result = get_whoop_data()
+                elif call.name == "get_weather":
+                    city = call.args.get("city", CITY_NAME)
+                    result = weather_fetcher.get_weather(OPENWEATHER_API_KEY, city)
+                else:
+                    result = f"Error: Tool {call.name} not found."
+                
+                tool_responses.append(types.Part(
+                    function_response=types.FunctionResponse(
+                        name=call.name,
+                        response={"result": result}
+                    )
+                ))
         
-        # Add tool responses to history and loop back for Gemini to generate final text
-        history.append(types.Content(role="tool", parts=tool_responses))
+        # Send tool responses back to continue the conversation
+        response = chat.send_message(tool_responses)
+
+    return response.text
 
 
 async def _one_shot(prompt: str) -> str:
@@ -427,6 +436,7 @@ async def send_morning_briefing(context: ContextTypes.DEFAULT_TYPE):
     logger.info("Sending morning briefing to chat_id=%s", DAAN_CHAT_ID)
     
     whoop_data = get_whoop_data()
+    weather_data = weather_fetcher.get_forecast(OPENWEATHER_API_KEY, CITY_NAME)
     tasks_data = tasks.list_tasks(DAAN_CHAT_ID)
     calendar_data = list_upcoming_events(max_results=5)
     
@@ -436,7 +446,8 @@ async def send_morning_briefing(context: ContextTypes.DEFAULT_TYPE):
         NEWS_API_KEY, 
         whoop_data=whoop_data, 
         tasks_data=tasks_data,
-        calendar_data=calendar_data
+        calendar_data=calendar_data,
+        weather_data=weather_data
     )
     await context.bot.send_message(chat_id=DAAN_CHAT_ID, text=briefing)
 

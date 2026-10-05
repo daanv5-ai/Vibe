@@ -1,0 +1,370 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Luminary · Cima Forcola</title>
+  <style>
+    :root {
+      --ink: #1c1915;
+      --muted: #5c564c;
+      --line: #d9d0c3;
+      --paper: #f6f1e8;
+      --card: #fffdf8;
+      --lake: #1f4d63;
+      --lake-soft: #e7f0f4;
+      --warm: #8a4b2f;
+      --ok: #2d6a4f;
+    }
+    * { box-sizing: border-box; }
+    html { scroll-behavior: smooth; }
+    body {
+      margin: 0;
+      background: var(--paper);
+      color: var(--ink);
+      font: 17px/1.45 "Iowan Old Style", Palatino, "Palatino Linotype", Georgia, serif;
+    }
+    header, main { max-width: 42rem; margin: 0 auto; padding: 1.25rem 1.1rem 2rem; }
+    header { padding-bottom: 0.4rem; }
+    h1 { font-size: 2rem; line-height: 1.05; font-weight: 600; margin: 0 0 0.35rem; }
+    h2 { font-size: 1.35rem; margin: 2rem 0 0.6rem; font-weight: 600; }
+    h3 { font-size: 1.05rem; margin: 0 0 0.25rem; font-weight: 600; }
+    p { margin: 0.4rem 0; }
+    a { color: var(--lake); }
+    .kicker {
+      letter-spacing: 0.14em;
+      text-transform: uppercase;
+      font: 0.72rem/1.3 ui-sans-serif, system-ui, sans-serif;
+      color: var(--warm);
+      margin: 0;
+    }
+    .lede { color: var(--muted); margin-top: 0.6rem; }
+    nav {
+      display: flex;
+      gap: 0.5rem;
+      flex-wrap: wrap;
+      margin-top: 1rem;
+    }
+    nav a {
+      text-decoration: none;
+      border: 1px solid var(--line);
+      background: var(--card);
+      color: var(--ink);
+      border-radius: 999px;
+      padding: 0.35rem 0.75rem;
+      font: 0.85rem/1.2 ui-sans-serif, system-ui, sans-serif;
+    }
+    .card {
+      background: var(--card);
+      border: 1px solid var(--line);
+      border-radius: 14px;
+      padding: 0.9rem 0.95rem 1rem;
+      margin: 0.7rem 0;
+    }
+    .shot { display: grid; grid-template-columns: auto 1fr; gap: 0.75rem; align-items: start; }
+    .shot input { width: 1.35rem; height: 1.35rem; margin-top: 0.2rem; accent-color: var(--ok); }
+    .meta {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 0.4rem;
+      margin: 0.35rem 0 0.5rem;
+    }
+    .pill {
+      font: 0.75rem/1.2 ui-sans-serif, system-ui, sans-serif;
+      background: var(--lake-soft);
+      color: var(--lake);
+      border-radius: 999px;
+      padding: 0.15rem 0.5rem;
+    }
+    .pill.warn { background: #f4e6d4; color: var(--warm); }
+    ul { margin: 0.35rem 0 0.2rem; padding-left: 1.15rem; }
+    li { margin: 0.2rem 0; }
+    .file {
+      font: 0.82rem/1.3 ui-monospace, "SF Mono", Menlo, monospace;
+      color: var(--muted);
+    }
+    ol.steps { padding-left: 1.2rem; }
+    ol.steps li { margin: 0.55rem 0; }
+    .note {
+      background: #f3ecdf;
+      border-radius: 12px;
+      padding: 0.75rem 0.85rem;
+      margin: 0.8rem 0;
+    }
+    table { width: 100%; border-collapse: collapse; font-size: 0.95rem; }
+    th, td { text-align: left; vertical-align: top; padding: 0.45rem 0.35rem; border-bottom: 1px solid var(--line); }
+    th { font: 0.75rem/1.2 ui-sans-serif, system-ui, sans-serif; color: var(--muted); font-weight: 600; }
+    footer { color: var(--muted); font-size: 0.9rem; margin-top: 2rem; }
+    .done h3, .done p, .done li { color: var(--muted); text-decoration: line-through; }
+    .done .meta, .done .file, .done a { text-decoration: none; }
+  </style>
+</head>
+<body>
+  <header>
+    <p class="kicker">DJI Flip · 3:09 · Joel Sunny</p>
+    <h1>Luminary, on Cima Forcola</h1>
+    <p class="lede">Quiet phrases stay on the ground. The lake opens only when the violin climbs. Shoot long, then cut to the phrase in CapCut.</p>
+    <nav>
+      <a href="#preflight">Before flying</a>
+      <a href="#terrain">Terrain</a>
+      <a href="#house">House</a>
+      <a href="#town">Trarego</a>
+      <a href="#views">Views</a>
+      <a href="#edit">CapCut</a>
+    </nav>
+  </header>
+  <main>
+    <section id="preflight">
+      <h2>Before the first launch</h2>
+      <div class="card">
+        <ul>
+          <li>Open <a href="https://www.d-flight.it">d-flight.it</a> that morning. Stay under 120 m, in sight, and off people.</li>
+          <li>Cine mode. 4K at 25 fps. Normal color, unless you will grade D-Log M later.</li>
+          <li>Lock white balance. Lock exposure a little under, so the lake does not blow out.</li>
+          <li>Wind limit is about 38 km/h. If the drone fights the hover, land. Morning is the calmer window.</li>
+          <li>Battery in an inside pocket until launch. Land at 30 percent. One battery for the house and meadow, one for the ridge, one for Trarego.</li>
+          <li>Home point in an open patch. Return-to-home above the canopy and under 120 m.</li>
+          <li>The Flip looks forward only. Automated circles turn sensing off. Fly the dusk orbit by hand if trees are close.</li>
+          <li>The Swiss border is up the valley past Sant'Eurosia. Stay on the Trarego side. Power lines follow the SP 92.</li>
+          <li>Shoot each move for 10–12 seconds. Shoot the wide view for 15. Hold still for two seconds at each end.</li>
+        </ul>
+      </div>
+    </section>
+
+    <section id="terrain">
+      <h2>Terrain, the opening</h2>
+      <p>These three shots cover 0:00–0:55. No house yet. The lake can only sneak into a corner.</p>
+
+      <article class="card shot" data-id="meadow">
+        <input type="checkbox" id="meadow" aria-label="Meadow shot done">
+        <div>
+          <h3>Meadow</h3>
+          <div class="meta">
+            <span class="pill">0:00–0:16 in the song</span>
+            <span class="pill">filename meadow</span>
+          </div>
+          <p>Low drift across open grass. The frame is mostly ground, flowers, and the edge of the trees. Fly near the house, or use the grass toward Sant'Eurosia if that clearing is the open one.</p>
+          <p><a href="https://www.google.com/maps/search/?api=1&query=46.043292,8.637614">Sant'Eurosia grass</a></p>
+        </div>
+      </article>
+
+      <article class="card shot" data-id="forest">
+        <input type="checkbox" id="forest" aria-label="Forest shot done">
+        <div>
+          <h3>Forest</h3>
+          <div class="meta">
+            <span class="pill">0:16–0:32</span>
+            <span class="pill">filename forest</span>
+          </div>
+          <p>A move just above the canopy, or through a gap on the forest path. The path can show for a moment. Stay out of the tunnel of branches. The Flip cannot see limbs to the sides or overhead.</p>
+          <p><a href="https://maps.app.goo.gl/SW9ezHpGbfnV1Vas5">Your path pin</a></p>
+        </div>
+      </article>
+
+      <article class="card shot" data-id="terrain">
+        <input type="checkbox" id="terrain" aria-label="Terrain texture shot done">
+        <div>
+          <h3>One other texture</h3>
+          <div class="meta">
+            <span class="pill">0:32–0:55</span>
+            <span class="pill">filename terrain</span>
+          </div>
+          <p>Different from the first two. A stone wall, the lane, birch trunks, or a terrace of old vines. Still close. If the lake enters the corner, leave it. Do not turn to face the water yet.</p>
+        </div>
+      </article>
+    </section>
+
+    <section id="house">
+      <h2>The house</h2>
+      <p>The house sits in the valley of the song, from 1:18, and again as the melody lands.</p>
+
+      <article class="card shot" data-id="balcony">
+        <input type="checkbox" id="balcony" aria-label="Balcony shot done">
+        <div>
+          <h3>Out of the balcony</h3>
+          <div class="meta">
+            <span class="pill">1:18–1:30</span>
+            <span class="pill">filename house-balcony</span>
+          </div>
+          <p>Fly out of the open door and let the trees, plus a piece of the view, come with you. If the doorway is tight or under a roof, start a few meters outside with the open door behind the drone, then fly away. Very slow, Cine mode, someone watching the rails.</p>
+        </div>
+      </article>
+
+      <article class="card shot" data-id="front">
+        <input type="checkbox" id="front" aria-label="Front pass done">
+        <div>
+          <h3>Past the front</h3>
+          <div class="meta">
+            <span class="pill">1:30–1:42</span>
+            <span class="pill">filename house-front</span>
+          </div>
+          <p>A sideways pass along the facade, close enough that the house stays large. End before it becomes a speck. The Flip is about a 24 mm camera, so closeness matters.</p>
+        </div>
+      </article>
+
+      <article class="card shot" data-id="dusk">
+        <input type="checkbox" id="dusk" aria-label="Dusk orbit done">
+        <div>
+          <h3>Dusk orbit</h3>
+          <div class="meta">
+            <span class="pill">2:40–3:09</span>
+            <span class="pill warn">blue hour</span>
+            <span class="pill">filename house-dusk</span>
+          </div>
+          <p>A slow circle in the open air in front of the lit house. Blue hour: warm windows, some color left in the sky, and you can still see the aircraft. Fly it by hand. A green flashing light stays on if it is actually night. Check d-flight again that evening.</p>
+          <p>If the last phrase still feels bright when you watch the edit, hold the wide view for the last seconds and let the house be only the final cut.</p>
+        </div>
+      </article>
+    </section>
+
+    <section id="town">
+      <h2>Trarego, on the way up</h2>
+      <p>One building, from 1:42 to 2:05, before the highest note. Not during the big view.</p>
+
+      <article class="card shot" data-id="church">
+        <input type="checkbox" id="church" aria-label="San Martino shot done">
+        <div>
+          <h3>San Martino</h3>
+          <div class="meta">
+            <span class="pill">1:42–2:05</span>
+            <span class="pill">filename church</span>
+          </div>
+          <p>The stone stair, the portico, the bell tower. One slow pass from the open side of the stair. Wait if people are on the steps.</p>
+          <p><a href="https://www.google.com/maps/search/?api=1&query=46.033794,8.664230">San Martino, Trarego</a></p>
+        </div>
+      </article>
+
+      <article class="card shot" data-id="vecchia">
+        <input type="checkbox" id="vecchia" aria-label="Chiesa Vecchia backup">
+        <div>
+          <h3>Backup: Chiesa Vecchia</h3>
+          <div class="meta">
+            <span class="pill">only if San Martino is busy</span>
+            <span class="pill">filename church</span>
+          </div>
+          <p>Fifteenth-century church by the cemetery in Viggiona. It stands apart from the houses and is easier to fly.</p>
+          <p><a href="https://www.google.com/maps/search/?api=1&query=46.034883,8.695655">Chiesa Vecchia, Viggiona</a></p>
+        </div>
+      </article>
+
+      <article class="card shot" data-id="roofs">
+        <input type="checkbox" id="roofs" aria-label="Village roofs optional">
+        <div>
+          <h3>Optional: the roofs</h3>
+          <div class="meta">
+            <span class="pill">only if the phrase runs long</span>
+            <span class="pill">filename village</span>
+          </div>
+          <p>Trarego in the green bowl, small, with a strip of lake behind the roofs. Film it from a clearing above the streets.</p>
+          <p><a href="https://www.google.com/maps/search/?api=1&query=46.033761,8.663808">Trarego</a></p>
+        </div>
+      </article>
+    </section>
+
+    <section id="views">
+      <h2>The lake, twice</h2>
+      <p>A glimpse on the first lift. One held wide shot on the soar. Do not cut to the town during the high notes.</p>
+
+      <article class="card shot" data-id="glimpse">
+        <input type="checkbox" id="glimpse" aria-label="First lake glimpse done">
+        <div>
+          <h3>First opening</h3>
+          <div class="meta">
+            <span class="pill">0:55–1:18</span>
+            <span class="pill">filename view-glimpse</span>
+          </div>
+          <p>From the path viewpoint, rise and tilt until Lago Maggiore appears. Stop before it becomes the widest possible frame. This phrase is a glimpse, so the later peak can go further.</p>
+          <p><a href="https://maps.app.goo.gl/SW9ezHpGbfnV1Vas5">Path viewpoint</a></p>
+        </div>
+      </article>
+
+      <article class="card shot" data-id="wide">
+        <input type="checkbox" id="wide" aria-label="Wide view done">
+        <div>
+          <h3>The big view</h3>
+          <div class="meta">
+            <span class="pill">2:05–2:40</span>
+            <span class="pill warn">hold 15 seconds</span>
+            <span class="pill">filename view-wide</span>
+          </div>
+          <p>From open ground at Monte Pian Bello or Cima Forcola, a slow climb and a quarter-turn until the lake, the far shore, and the sky fill the frame. If the top is too wooded to see the drone, use the path viewpoint and simply fly higher and wider than the first reveal.</p>
+          <p>
+            <a href="https://www.google.com/maps/search/?api=1&query=46.045372,8.648386">Monte Pian Bello</a><br>
+            <a href="https://www.google.com/maps/search/?api=1&query=46.046642,8.640468">Cima Forcola</a>
+          </p>
+        </div>
+      </article>
+
+      <article class="card shot" data-id="cannero">
+        <input type="checkbox" id="cannero" aria-label="Cannero optional">
+        <div>
+          <h3>Optional: Castelli di Cannero</h3>
+          <div class="meta">
+            <span class="pill">second half of the soar</span>
+            <span class="pill">separate battery</span>
+            <span class="pill">filename cannero</span>
+          </div>
+          <p>One high pass with the castle rocks in the lake. Stay off swimmers and clear of the boat lane. Check d-flight again down at the shore. The ridge view is enough if you stay on the mountain.</p>
+          <p><a href="https://www.google.com/maps/search/?api=1&query=46.023575,8.703253">Castelli di Cannero</a></p>
+        </div>
+      </article>
+    </section>
+
+    <section id="edit">
+      <h2>Cut it in CapCut</h2>
+      <div class="note">
+        <p>Use the free CapCut app on the phone or the computer. Skip Pro, skip templates, and skip one-tap AI. Those tools pick their own music.</p>
+        <p>On an iPhone or Mac, iMovie does the same job and is already installed. On Windows, Clipchamp exports 1080p free. Leave DaVinci Resolve for another film.</p>
+      </div>
+
+      <h3>The timeline</h3>
+      <p>These times are the shape of the recording. Slide each cut until it lands on a bow change. Do not cut in the middle of a high note.</p>
+      <table>
+        <thead>
+          <tr><th>Time</th><th>Clip</th><th>What the phrase is doing</th></tr>
+        </thead>
+        <tbody>
+          <tr><td>0:00</td><td>meadow</td><td>Thin violin</td></tr>
+          <tr><td>0:16</td><td>forest</td><td>Still thin</td></tr>
+          <tr><td>0:32</td><td>terrain</td><td>Same melody, a little warmer</td></tr>
+          <tr><td>0:55</td><td>view-glimpse</td><td>First lift. A glimpse of the lake</td></tr>
+          <tr><td>1:18</td><td>house-balcony</td><td>The valley. Close and calm</td></tr>
+          <tr><td>1:30</td><td>house-front</td><td>Still soft. House stays large</td></tr>
+          <tr><td>1:42</td><td>church</td><td>Climbing. Trarego, before the high note</td></tr>
+          <tr><td>2:05</td><td>view-wide</td><td>The soar. Hold. No town here</td></tr>
+          <tr><td>2:40</td><td>house-dusk</td><td>The landing. Closer again</td></tr>
+          <tr><td>3:07</td><td>title</td><td>House name, or “Forcola”</td></tr>
+        </tbody>
+      </table>
+
+      <ol class="steps">
+        <li>Copy the clips off the drone’s card into a folder before you edit. Name them with the filenames on the cards.</li>
+        <li>New project, 16:9. Drop <a href="https://open.spotify.com/track/66pWxtaxTV8CxcGOvivZeT">Luminary</a> on the audio track, starting at zero. You need the audio file, not only the Spotify link. Use a copy you are allowed to use. Turn the clips’ own microphones down.</li>
+        <li>Drop the clips above the song in the order of the table. Rough lengths are the gaps between the times.</li>
+        <li>A beat button can mark the pulse. Move those marks to where the violin actually opens or sits down. The pulse and the phrase are not the same.</li>
+        <li>Play from the start. Drag the edge of each clip so the cut lands when the violin changes. If the phrase turns a second early, follow the phrase.</li>
+        <li>Plain cuts. A short crossfade only if a join blinks. No whoosh sounds and no zoom effects.</li>
+        <li>Title on the last two seconds, over the final notes.</li>
+        <li>Export 1080p on a phone, or 4K if the computer plays the timeline smoothly. Watch it once with the sound up before you erase the card.</li>
+      </ol>
+      <p>A private edit is fine. YouTube and Instagram often mute or claim Luminary.</p>
+    </section>
+
+    <footer>
+      <p>Checks on this page stay on this phone. Nothing is uploaded.</p>
+    </footer>
+  </main>
+  <script>
+    const boxes = document.querySelectorAll(".shot input");
+    boxes.forEach((box) => {
+      const key = "forcola-" + box.id;
+      box.checked = localStorage.getItem(key) === "1";
+      box.closest(".shot").classList.toggle("done", box.checked);
+      box.addEventListener("change", () => {
+        localStorage.setItem(key, box.checked ? "1" : "0");
+        box.closest(".shot").classList.toggle("done", box.checked);
+      });
+    });
+  </script>
+</body>
+</html>
